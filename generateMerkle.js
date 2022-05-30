@@ -8,6 +8,7 @@ function main() {
     {
       "symbol": "SDT",
       "address": "0x73968b9a57c6e53d41345fd57a6e6ae27d6cdb2f",
+      "image": "https://img.api.cryptorank.io/coins/stake%20dao1611223377376.png",
       "users": [
         { index: 0, address: "0xD08c8e6d78a1f64B1796d6DC3137B19665cb6F1F", amount: 10 },
         { index: 0, address: "0xb7D15753D3F76e7C892B63db6b4729f700C01298", amount: 15 },
@@ -42,6 +43,7 @@ function main() {
     global.push({
       "symbol": elem.symbol,
       "address": elem.address,
+      "image": elem.image,
       "merkle": res
     });
   }
