@@ -13,7 +13,7 @@ function main() {
       "image": "https://img.api.cryptorank.io/coins/stake%20dao1611223377376.png",
       "users": [
         { index: 0, address: "0xb7BFcDC3a2AA2aF3Fe653C9E8a19830977E1993C", amount: BigNumber.from(1).mul(BigNumber.from(10).pow(18)) },
-        { index: 1, address: "0xc7BFcDC3a2AA2aF3Fe653C9E8a19830977E1993C", amount: BigNumber.from(1).mul(BigNumber.from(10).pow(18)) },
+        { index: 1, address: "0x7c9f43215d3b3d5055433a9d7b12bcbf9f4be442", amount: BigNumber.from(1).mul(BigNumber.from(10).pow(18)) },
       ]
     }
   ];
