@@ -195,6 +195,13 @@ const main = async () => {
       address: "0x73968b9a57c6E53d41345FD57a6E6ae27d6CDB2F",
       amount: 6000,
       decimals: 18,
+    },
+    {
+      gaugeName: "sdANGLE/ANGLE",
+      token: "SDT",
+      address: "0x73968b9a57c6E53d41345FD57a6E6ae27d6CDB2F",
+      amount: 2000,
+      decimals: 18,
     }
   ];
   /***************************/
@@ -203,10 +210,6 @@ const main = async () => {
   const mapNameBribes = {};
   const mapBribesVotes = {};
   const mapBribeRewards = {};
-  bribes.forEach((b, index) => {
-    mapNameBribes[index + 1] = b.gaugeName;
-    mapBribesVotes[b.gaugeName] = [];
-  });
 
   // Get all votes for a specific gauge vote
   const votes = await getVotes(idProposal);
@@ -218,6 +221,17 @@ const main = async () => {
   const voters = votes.map((v) => v.voter);
 
   const scores = await getScores(proposal, votes, voters);
+
+  // Get only gauges where we have bribes
+  for (let i = 0; i < proposal.choices.length; i++) {
+    const choice = proposal.choices[i];
+    const bribe = bribes.find(b => b.gaugeName === choice);
+    if (bribe) {
+      mapNameBribes[i + 1] = choice;
+      mapBribesVotes[choice] = [];
+    }
+  }
+  const gaugesIndex = Object.keys(mapNameBribes).map(k => parseInt(k));
 
   // For each scores (ie : users who voted)
   // We get only them where we have bribes
@@ -231,7 +245,7 @@ const main = async () => {
     }
 
     for (const key of Object.keys(score.choice)) {
-      if (mapNameBribes[parseInt(key)]) {
+      if (gaugesIndex.indexOf(parseInt(key)) > -1) {
         // Use voted for a gauge where we have a bribe
         // Save it
         // Calculate the weight associated to the vote based on the total voting power to the user
@@ -263,7 +277,7 @@ const main = async () => {
       const rewardAmount = percentageWeight * totalReward / 100;
       mapBribeRewards[bribeName].push({
         voter: vote.voter,
-        amount: BigNumber.from(Math.floor(rewardAmount * 1000000)).mul(BigNumber.from(10).pow(bribe.decimals - 6)),
+        amount: BigNumber.from(Math.floor(rewardAmount * 1000000000)).mul(BigNumber.from(10).pow(bribe.decimals - 9)),
       });
     }
   }
@@ -367,7 +381,7 @@ const main = async () => {
       const user = users[i];
       res[user.address] = {
         index: user.index,
-        amount: user.amount,
+        amount: BigNumber.from(user.amount).div(BigNumber.from(10).pow(18)),
         proof: merkleTree.getHexProof(elements[i]),
       };
     }
