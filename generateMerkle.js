@@ -253,7 +253,7 @@ const main = async () => {
         // I will have 1000 in weight for each
         mapBribesVotes[mapNameBribes[parseInt(key)]].push({
           weight: parseFloat(score.choice[key]) * 100 / totalWeight * score.vp / 100,
-          voter: score.voter,
+          voter: score.voter.toLowerCase(),
         });
       }
     }
@@ -276,7 +276,7 @@ const main = async () => {
       const percentageWeight = vote.weight * 100 / totalWeight;
       const rewardAmount = percentageWeight * totalReward / 100;
       mapBribeRewards[bribeName].push({
-        voter: vote.voter,
+        voter: vote.voter.toLowerCase(),
         amount: BigNumber.from(Math.floor(rewardAmount * 1000000000)).mul(BigNumber.from(10).pow(bribe.decimals - 9)),
       });
     }
@@ -292,7 +292,7 @@ const main = async () => {
     if (!claimedByTokens[cd.token]) {
       claimedByTokens[cd.token] = [];
     }
-    claimedByTokens[cd.token].push(cd.account);
+    claimedByTokens[cd.token].push(cd.account.toLowerCase());
   }
 
   // Now, we get users who didn't claim yet last rewards
@@ -311,9 +311,9 @@ const main = async () => {
     for (const key of Object.keys(bribe.merkle)) {
 
       //If the user didn't claim, we add him
-      if (claimedByTokens[bribe.address].indexOf(key) === -1) {
+      if (claimedByTokens[bribe.address].indexOf(key.toLowerCase()) === -1) {
         usersWhoNeedClaim[bribe.address].push({
-          account: key,
+          account: key.toLowerCase(),
           amount: BigNumber.from(bribe.merkle[key].amount),
         });
       }
@@ -334,7 +334,7 @@ const main = async () => {
     for (const r of mapBribeRewards[gaugeName]) {
       let find = false;
       for (const u of usersWhoNeedClaim[tokenAddress]) {
-        if (u.account === r.voter) {
+        if (u.account.toLowerCase() === r.voter.toLowerCase()) {
           find = true;
           u.amount = BigNumber.from(u.amount).add(BigNumber.from(r.amount));
           break;
@@ -345,7 +345,7 @@ const main = async () => {
         // User already claimed or new user, we add him
         usersWhoNeedClaim[tokenAddress].push({
           amount: BigNumber.from(r.amount),
-          account: r.voter,
+          account: r.voter.toLowerCase(),
         });
       }
     }
@@ -364,13 +364,13 @@ const main = async () => {
     for (let i = 0; i < usersEligible.length; i++) {
       users.push({
         index: i,
-        address: usersEligible[i].account,
+        address: usersEligible[i].account.toLowerCase(),
         amount: usersEligible[i].amount,
       });
     }
 
     const elements = users.map((x) =>
-      utils.solidityKeccak256(["uint256", "address", "uint256"], [x.index, x.address, x.amount])
+      utils.solidityKeccak256(["uint256", "address", "uint256"], [x.index, x.address.toLowerCase(), x.amount])
     );
 
     const merkleTree = new MerkleTree(elements, keccak256, { sort: true });
@@ -379,7 +379,7 @@ const main = async () => {
 
     for (let i = 0; i < users.length; i++) {
       const user = users[i];
-      res[user.address] = {
+      res[user.address.toLowerCase()] = {
         index: user.index,
         amount: BigNumber.from(user.amount).div(BigNumber.from(10).pow(18)),
         proof: merkleTree.getHexProof(elements[i]),
