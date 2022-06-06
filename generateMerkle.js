@@ -381,7 +381,7 @@ const main = async () => {
       const user = users[i];
       res[user.address.toLowerCase()] = {
         index: user.index,
-        amount: BigNumber.from(user.amount).div(BigNumber.from(10).pow(18)),
+        amount: BigNumber.from(user.amount).div(BigNumber.from(10).pow(bribe.decimals)),
         proof: merkleTree.getHexProof(elements[i]),
       };
     }
