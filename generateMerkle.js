@@ -12,6 +12,7 @@ const INFURA_KEY = infura_json.api_key;
 
 // LAST MERKLE
 const lastMerkle = require("./lastMerkle.json");
+const { exit } = require("process");
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //          EDIT PROVIDER AS NEEDED:                                                      //
@@ -184,6 +185,10 @@ const getScores = async (proposal, votes, voters) => {
   return orderBy(scores, "vp", "desc");
 }
 
+const numberToBigNumber = (n, decimals) => {
+  return ethers.utils.parseUnits(n.toString(), decimals);
+};
+
 const main = async () => {
 
   /*********** Inputs ********/
@@ -277,7 +282,7 @@ const main = async () => {
       const rewardAmount = percentageWeight * totalReward / 100;
       mapBribeRewards[bribeName].push({
         voter: vote.voter.toLowerCase(),
-        amount: BigNumber.from(Math.floor(rewardAmount * 1000000000)).mul(BigNumber.from(10).pow(bribe.decimals - 9)),
+        amount: numberToBigNumber(rewardAmount.toString(), bribe.decimals),
       });
     }
   }
@@ -352,7 +357,6 @@ const main = async () => {
   }
 
   // We generate the merkle tree
-  //fs.writeFileSync('merkle.json', JSON.stringify(mapBribeRewards));
   // IMPORTANT 
   // Increment the index [0, ...] for each tokens
   const global = [];
@@ -369,6 +373,27 @@ const main = async () => {
       });
     }
 
+    // Check if all amounts <= total bribe
+    let bn = BigNumber.from(0);
+    for (const user of users) {
+      bn = bn.add(user.amount);
+    }
+
+    // Total bribes
+    const totalBribe = bribes.reduce((acc, bribe) => {
+      if (bribe.address !== tokenAddress) {
+        return acc;
+      }
+
+      return acc.add(numberToBigNumber(bribe.amount, bribe.decimals));
+    }, BigNumber.from(0));
+    if (bn.gt(totalBribe)) {
+      console.error("Bribe " + bribe.gaugeName + " not correct");
+      console.log("Total " + bn.toString());
+      console.log("Max " + totalBribe.toString());
+      exit(-1);
+    }
+
     const elements = users.map((x) =>
       utils.solidityKeccak256(["uint256", "address", "uint256"], [x.index, x.address.toLowerCase(), x.amount])
     );
@@ -381,7 +406,7 @@ const main = async () => {
       const user = users[i];
       res[user.address.toLowerCase()] = {
         index: user.index,
-        amount: BigNumber.from(user.amount).div(BigNumber.from(10).pow(bribe.decimals)),
+        amount: BigNumber.from(user.amount),
         proof: merkleTree.getHexProof(elements[i]),
       };
     }
